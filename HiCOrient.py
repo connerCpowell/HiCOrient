@@ -113,7 +113,7 @@ if __name__ == "__main__":
             reverse_alignments = this_block_pair.get_interscaffold_distances(these_alignments, reverse_b=True)
 
             # Perform t-test on these two lists of interscaffold alignment distances.
-            if len(forward_alignments) > 3 and len(reverse_alignments) > 3:
+            if len(forward_alignments) > 30 and len(reverse_alignments) > 30:
                 statistic, p_value = stats.ttest_ind(forward_alignments, reverse_alignments)
 
                 # If we reject the null hypothesis, reverse complement if necessary and join the two blocks.
