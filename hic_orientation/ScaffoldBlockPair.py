@@ -48,6 +48,30 @@ class ScaffoldBlockPair(object):
         else:
             return pre_block_length + self.block_a.lengths[block_position] - coord
 
+    def _get_block_a_reverse_coord(self, scaffold, coord):
+        """
+        Given a coordinate relative to a scaffold_a, return a coordinate that
+        is relative to the scaffolds position within the whole block.
+        In this case, the value returned is the coordinate of a theoretically reverse
+        complemented block.
+        :param scaffold:
+        :param coord:
+        :return:
+        """
+        try:
+            block_position = self.block_a.scaffolds.index(scaffold)
+        except IndexError:
+            raise ValueError('Scaffold %r is not in %s.' % (scaffold, str(self.block_a)))
+        pre_block_length = 0
+        for i in range(block_position):
+            pre_block_length += self.block_a.lengths[i]
+
+        # Check if this scaffold has been flipped. Handle coordinate accordingly.
+        if self.block_a.orientations[block_position] == '-':
+            return pre_block_length + coord
+        else:
+            return pre_block_length + self.block_a.lengths[block_position] - coord
+
     def _get_block_b_coord(self, scaffold, coord):
         """
         Given a coordinate relative to a scaffold_a, return a coordinate that
@@ -94,7 +118,7 @@ class ScaffoldBlockPair(object):
         else:
             return pre_block_length + self.block_b.lengths[block_position] - coord
 
-    def get_interscaffold_distances(self, alignments, reverse_b=False):
+    def get_interscaffold_distances(self, alignments, reverse_a=False, reverse_b=False):
         """
 
         :return:
@@ -110,7 +134,10 @@ class ScaffoldBlockPair(object):
         for pair in all_pairs:
             if pair in alignments.keys():
                 for i, j in zip(alignments[pair].pos_a, alignments[pair].pos_b):
-                    block_a_coord = self._get_block_a_coord(pair[0], i)
+                    if not reverse_a:
+                        block_a_coord = self._get_block_a_coord(pair[0], i)
+                    else:
+                        block_a_coord = self._get_block_a_reverse_coord(pair[0], i)
                     if not reverse_b:
                         block_b_coord = self._get_block_b_coord(pair[1], j)
                     else:

@@ -104,27 +104,45 @@ if __name__ == "__main__":
         # Right now, the last element of an odd list is being left out.
         changes = False
         for block_a, block_b in iterate_pairs(scaffold_block_list):
+            # For the first pair, does this need to be a 4 way test?
             # Instantiate a ScaffoldBlockPair object with these two blocks.
             this_block_pair = ScaffoldBlockPair(block_a, block_b)
 
             # Get the interscaffold alignment distances for both cases. One were the blocks retain their
             # original orientation. One where block_b is reverse complemented.
-            forward_alignments = this_block_pair.get_interscaffold_distances(these_alignments)
-            reverse_alignments = this_block_pair.get_interscaffold_distances(these_alignments, reverse_b=True)
+            f_f_alignments = this_block_pair.get_interscaffold_distances(these_alignments)
+            f_r_alignments = this_block_pair.get_interscaffold_distances(these_alignments, reverse_b=True)
+            r_f_alignments = this_block_pair.get_interscaffold_distances(these_alignments, reverse_a=True)
+            r_r_alignments = this_block_pair.get_interscaffold_distances(these_alignments, reverse_a=True, reverse_b=True)
 
             # Perform t-test on these two lists of interscaffold alignment distances.
-            if len(forward_alignments) > 30 and len(reverse_alignments) > 30:
-                statistic, p_value = stats.ttest_ind(forward_alignments, reverse_alignments)
+            if len(f_f_alignments) > 30 and len(f_r_alignments) > 30 and len(r_f_alignments) > 30 and len(r_r_alignments) > 30:
+                statistic, p_value = stats.f_oneway(f_f_alignments, f_r_alignments, r_f_alignments, r_r_alignments)
 
                 # If we reject the null hypothesis, reverse complement if necessary and join the two blocks.
                 # Otherwise, keep the blocks as is.
                 if p_value < 0.05:
+                    s1 = ' :: '
+                    print block_a, s1, block_b
+                    print p_value
                     changes = True
-                    if np.mean(forward_alignments) < np.mean(reverse_alignments):
+                    smallest_distance = sorted([np.mean(f_f_alignments), np.mean(r_r_alignments), np.mean(f_r_alignments), np.mean(r_f_alignments)])[0]
+                    if smallest_distance == np.mean(f_f_alignments):
                         block_a.join(block_b)
-                    else:
+                        print 'no rc'
+                    elif smallest_distance == np.mean(f_r_alignments):
                         block_b.reverse_complement()
                         block_a.join(block_b)
+                        print 'rc_b'
+                    elif smallest_distance == np.mean(r_f_alignments):
+                        block_a.reverse_complement()
+                        block_a.join(block_b)
+                        print 'rc_a'
+                    else:
+                        block_a.reverse_complement()
+                        block_b.reverse_complement()
+                        block_a.join(block_b)
+                        print 'rc_a_b'
                     new_scaffold_block_list.append(block_a)
 
                 else:

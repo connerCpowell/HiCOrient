@@ -3,7 +3,6 @@ __author__ = 'malonge'
 
 class ScaffoldBlock(object):
     """
-        Need to account for the lengths of these scaffolds.
     """
 
     def __init__(self, scaffold, length):
