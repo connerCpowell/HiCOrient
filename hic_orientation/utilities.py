@@ -20,11 +20,11 @@ def parse_sam(in_sams, headers):
             for line in f:
                 index += 1
 
-                if index%2 != 0:
+                if index % 2 != 0:
                     continue
 
                 if index % 1000000 == 0:
-                    log('Processed %r alignments' % (index))
+                    log('Processed %r alignments' % index)
                 if line.startswith('@'):
                     continue
                 L1 = line.split('\t')

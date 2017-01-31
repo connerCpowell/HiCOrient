@@ -9,6 +9,7 @@ class ScaffoldBlock(object):
         self.scaffolds = [scaffold]
         self.orientations = ['+']
         self.lengths = [int(length)]
+        self.oriented = False
 
         # Add orientations
 
@@ -49,6 +50,8 @@ class ScaffoldBlock(object):
         for i in block.lengths:
             self.lengths.append(i)
 
+        self.oriented = True
+
     def reverse_complement(self):
         reverse_orientations = []
         for i in self.orientations:
@@ -57,3 +60,4 @@ class ScaffoldBlock(object):
             else:
                 reverse_orientations.append('+')
         self.orientations = reverse_orientations
+        self.oriented = True
