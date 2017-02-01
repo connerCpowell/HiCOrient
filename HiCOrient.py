@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 __author__ = 'malonge'
 
-import itertools
-
 from scipy import stats
 import numpy as np
 
@@ -276,8 +274,3 @@ if __name__ == "__main__":
         total += sum(block.lengths)
 
     log('the total number of nucleotides is %r' % total)
-
-
-
-
-
