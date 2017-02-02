@@ -65,6 +65,7 @@ if __name__ == "__main__":
         x = SeqReader(fasta_file)
         for (header, sequence), scaffold in zip(x.parse_fasta(), orientations):
             header = header.replace('>', '')
+            sequence = sequence.upper()
             # Make sure that the order is consistent across both files.
             if header != scaffold:
                 raise ValueError('Fasta and results file are out of order: %s and %s.' % (header, scaffold))

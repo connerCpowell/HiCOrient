@@ -94,7 +94,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
 
             # Perform t-test on these two lists of interscaffold alignment distances.
             if len(f_f_alignments) >= n:
-                statistic, p_value = stats.f_oneway(f_f_alignments, f_r_alignments, r_f_alignments, r_r_alignments)
+                statistic, p_value = stats.f_oneway(f_f_alignments, f_r_alignments, r_f_alignments, r_r_alignments, permutations=1000)
 
                 # If we reject the null hypothesis, reverse complement if necessary and join the two blocks.
                 # Otherwise, keep the blocks as is.
@@ -154,7 +154,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
     return in_scaffold_blocks, iteration
 
 
-def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, iteration, n=30):
+def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, iteration, n=30, m=100000):
     """
     The second phase of HiC based orientation. Here, no attempt will be made to extend blocks.
     Rather, large blocks will be compared to each other and will be oriented in place. This means that
@@ -164,10 +164,11 @@ def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, iteration,
     :param in_scaffolds:
     :param alignments:
     :param n:
+    :param m:
     :return:
     """
     # Get a list of all blocks that either have more than one scaffold, or have a scaffold length >= 1 million
-    large_blocks = [this_block for this_block in in_scaffold_blocks if sum(this_block.lengths) >= 100000 or len(this_block.scaffolds) > 1]
+    large_blocks = [this_block for this_block in in_scaffold_blocks if sum(this_block.lengths) >= m or len(this_block.scaffolds) > 1]
     for block_a, block_b in slide_pairs(large_blocks):
         # Instantiate a ScaffoldBlockPair object with these two blocks.
         this_block_pair = ScaffoldBlockPair(block_a, block_b)
@@ -235,12 +236,20 @@ if __name__ == "__main__":
     parser.add_argument('scaffolds', metavar='<scaffolds.txt>', type=str,
                         help='An ordered list of scaffolds. First column is scaffold header, second is scaffold length.')
     parser.add_argument('alignments', metavar='<alignments.sam>', nargs='+',
-                        type=str, help='SAM files containing HiC alignments to the specified scaffolds')
+                        type=str, help='SAM files containing HiC alignments to the specified scaffolds.')
+    parser.add_argument('-n', type=int, default=30, metavar='30',
+                        help='The minimum HiC event sample size needed to perform a F-test. Default = 30')
+    parser.add_argument('-m', type=int, default=100000, metavar='100000',
+                        help='The minimum scaffold size for consideration in phase 2. Default = 100000')
 
     args = parser.parse_args()
     scaffolds_file = args.scaffolds
     # For now, just SAM files.
     alignment_files = args.alignments
+
+    # Get the optional flags
+    sample_min = args.n
+    min_scaffold_size = args.m
 
     # Get the ordered list of scaffold headers and associated lengths.
     scaffolds, scaffold_lengths = get_scaffolds_and_lengths(args.scaffolds)
@@ -255,10 +264,10 @@ if __name__ == "__main__":
     these_alignments = parse_sam(alignment_files, scaffolds)
 
     # Run the first phase of orientation - the orientation of adjacent pairs.
-    scaffold_block_list, iter = orient_adjacent_pairs(scaffold_block_list, scaffolds, these_alignments, n=30)
+    scaffold_block_list, iter = orient_adjacent_pairs(scaffold_block_list, scaffolds, these_alignments, n=sample_min)
 
     log('\n\n\n**** Phase 2 **** \n\n\n')
-    scaffold_block_list, iter = orient_large_blocks(scaffold_block_list, scaffolds, these_alignments, iter, n=30)
+    scaffold_block_list, iter = orient_large_blocks(scaffold_block_list, scaffolds, these_alignments, iter, n=sample_min, m=min_scaffold_size)
 
 
     # Log the total number of nucleotides that have been oriented.
@@ -274,3 +283,7 @@ if __name__ == "__main__":
         total += sum(block.lengths)
 
     log('the total number of nucleotides is %r' % total)
+
+    # Write out all of the interscaffold lengths for an example pair to see what
+    # the distribution looks like.
+

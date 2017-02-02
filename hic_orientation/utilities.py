@@ -1,6 +1,7 @@
-__author__ = 'malonge'
-
+from __future__ import division
 import time
+
+import numpy as np
 
 from InterscaffoldAlignment import InterscaffoldAlignment
 
@@ -59,3 +60,22 @@ def parse_sam(in_sams, headers):
 def log(message):
     """ Log messages to standard output. """
     print time.ctime() + '  --  ' + message
+
+
+# Redo this so it takes in a pandas dataframe
+def _get_explained_variance(samples, total_mean, num_groups):
+    """
+
+    :param samples:
+    :param total_mean:
+    :param num_groups:
+    :return:
+    """
+    this_sample_mean = np.mean(samples)
+    num_obs = len(samples)
+    numerator = num_obs * (this_sample_mean - total_mean) ** 2
+    return numerator/(num_groups-1)
+
+
+def _get_unexplained_variance():
+    pass
