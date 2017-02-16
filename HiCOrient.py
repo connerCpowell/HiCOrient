@@ -61,6 +61,32 @@ def get_scaffolds_and_lengths(in_file):
     return scaffolds_list, all_lengths
 
 
+def set_cheats(in_cheat_file, scaffold_blocks, scaffold_list):
+    """
+    This needs to be done when there is one scaffold block for each scaffold.
+    :param in_cheat_file:
+    :param scaffold_blocks:
+    :return:
+    """
+    with open(in_cheat_file, 'r') as f:
+        for line, block in zip(f, scaffold_blocks):
+            cheat_scaffold, cheat_orientation = line.rstrip().split('\t')
+            cheat_scaffold_index = scaffold_list.index(cheat_scaffold)
+            if cheat_scaffold_index != block.scaffolds[0]:
+                raise ValueError('Cheat file and scaffolds are out of order %s and %s.' % (cheat_scaffold, block.scaffolds[0]))
+            if cheat_orientation == '?':
+                continue
+            elif cheat_orientation == '-':
+                block.reverse_complement()
+                block.oriented = True
+                block.is_fixed = True
+            elif cheat_orientation == '+':
+                block.oriented = True
+                block.is_fixed = True
+            else:
+                raise ValueError('Orientation may only be ?, -, or +')
+
+
 def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
     """
 
@@ -74,9 +100,6 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
     while True:
         write_summary(in_scaffold_blocks, in_scaffolds, 'iteration_' + str(iteration) + '_results.txt')
         iteration += 1
-        print '**********************\n\n'
-        print in_scaffold_blocks
-        print(len(in_scaffold_blocks))
 
         # Take pairs, in order, from the scaffold block list and start comparing them.
         new_scaffold_block_list = []
@@ -102,7 +125,6 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
                     s1 = ' :: '
                     print block_a, s1, block_b
                     print p_value
-                    changes = True
 
                     # Get the smallest of the means.
                     all_means = sorted(
@@ -122,17 +144,36 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
                     # Find the orientations which yield the smallest mean and orient accordingly.
                     if smallest_distance == np.mean(f_f_alignments):
                         block_a.join(block_b)
+                        new_scaffold_block_list.append(block_a)
+                        changes = True
                     elif smallest_distance == np.mean(f_r_alignments):
-                        block_b.reverse_complement()
-                        block_a.join(block_b)
+                        if not block_b.is_fixed:
+                            block_b.reverse_complement()
+                            block_a.join(block_b)
+                            new_scaffold_block_list.append(block_a)
+                            changes = True
+                        else:
+                            new_scaffold_block_list.append(block_a)
+                            new_scaffold_block_list.append(block_b)
                     elif smallest_distance == np.mean(r_f_alignments):
-                        block_a.reverse_complement()
-                        block_a.join(block_b)
+                        if not block_a.is_fixed:
+                            block_a.reverse_complement()
+                            block_a.join(block_b)
+                            new_scaffold_block_list.append(block_a)
+                            changes = True
+                        else:
+                            new_scaffold_block_list.append(block_a)
+                            new_scaffold_block_list.append(block_b)
                     else:
-                        block_a.reverse_complement()
-                        block_b.reverse_complement()
-                        block_a.join(block_b)
-                    new_scaffold_block_list.append(block_a)
+                        if not any([block_a.is_fixed, block_b.is_fixed]):
+                            block_a.reverse_complement()
+                            block_b.reverse_complement()
+                            block_a.join(block_b)
+                            new_scaffold_block_list.append(block_a)
+                            changes = True
+                        else:
+                            new_scaffold_block_list.append(block_a)
+                            new_scaffold_block_list.append(block_b)
 
                 else:
                     new_scaffold_block_list.append(block_a)
@@ -181,7 +222,7 @@ def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, iteration,
 
         # Perform t-test on these two lists of interscaffold alignment distances.
         if len(f_f_alignments) >= n:
-            statistic, p_value = stats.f_oneway(f_f_alignments, f_r_alignments, r_f_alignments, r_r_alignments)
+            statistic, p_value = stats.f_oneway(f_f_alignments, f_r_alignments, r_f_alignments, r_r_alignments, permutations=1000)
             # If we reject the null hypothesis, reverse complement if necessary, but do not join the two blocks.
             # Otherwise, keep the blocks as is.
             if p_value < 0.05:
@@ -204,22 +245,29 @@ def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, iteration,
                 if all_means.count(smallest_distance) != 1:
                     continue
 
-                block_a.oriented = True
-                block_b.oriented = True
                 # Find the orientations which yield the smallest mean and orient accordingly.
                 if smallest_distance == np.mean(f_f_alignments):
                     print 'ff'
                     pass
                 elif smallest_distance == np.mean(f_r_alignments):
-                    in_scaffold_blocks[in_scaffold_blocks.index(block_b)].reverse_complement()
-                    print 'fr'
+                    if not in_scaffold_blocks[in_scaffold_blocks.index(block_b)].is_fixed:
+                        in_scaffold_blocks[in_scaffold_blocks.index(block_b)].reverse_complement()
+                        block_a.oriented = True
+                        block_b.oriented = True
+                        print 'fr'
                 elif smallest_distance == np.mean(r_f_alignments):
-                    in_scaffold_blocks[in_scaffold_blocks.index(block_a)].reverse_complement()
-                    print 'rf'
+                    if not in_scaffold_blocks[in_scaffold_blocks.index(block_a)].is_fixed:
+                        in_scaffold_blocks[in_scaffold_blocks.index(block_a)].reverse_complement()
+                        block_a.oriented = True
+                        block_b.oriented = True
+                        print 'rf'
                 else:
-                    in_scaffold_blocks[in_scaffold_blocks.index(block_a)].reverse_complement()
-                    in_scaffold_blocks[in_scaffold_blocks.index(block_b)].reverse_complement()
-                    print 'rr'
+                    if not any([in_scaffold_blocks[in_scaffold_blocks.index(block_a)].is_fixed, in_scaffold_blocks[in_scaffold_blocks.index(block_b)].is_fixed]):
+                        in_scaffold_blocks[in_scaffold_blocks.index(block_a)].reverse_complement()
+                        in_scaffold_blocks[in_scaffold_blocks.index(block_b)].reverse_complement()
+                        block_a.oriented = True
+                        block_b.oriented = True
+                        print 'rr'
 
     #iteration += 1
     write_summary(in_scaffold_blocks, in_scaffolds, 'iteration_' + str(iteration) + '_results.txt')
@@ -242,6 +290,9 @@ if __name__ == "__main__":
     parser.add_argument('-m', type=int, default=100000, metavar='100000',
                         help='The minimum scaffold size for consideration in phase 2. Default = 100000')
 
+    parser.add_argument('--cheatWith', type=str, default='', metavar='orientations.txt',
+                        help='A tab delimited file with known orientations. 1st column is scaffold name, 2nd column is +,-,?')
+
     args = parser.parse_args()
     scaffolds_file = args.scaffolds
     # For now, just SAM files.
@@ -250,12 +301,17 @@ if __name__ == "__main__":
     # Get the optional flags
     sample_min = args.n
     min_scaffold_size = args.m
+    cheat_file = args.cheatWith
 
     # Get the ordered list of scaffold headers and associated lengths.
     scaffolds, scaffold_lengths = get_scaffolds_and_lengths(args.scaffolds)
 
     # Make a list of scaffold block objects.
     scaffold_block_list = [ScaffoldBlock(scaffolds.index(i), j) for i, j in zip(scaffolds, scaffold_lengths)]
+
+    # Add cheat info if it is available
+    if cheat_file:
+        set_cheats(cheat_file, scaffold_block_list, scaffolds)
 
     # Parse the alignment data
     # Send each sam/bam file to a method that will return the parsed info as a dictionary.
@@ -268,7 +324,6 @@ if __name__ == "__main__":
 
     log('\n\n\n**** Phase 2 **** \n\n\n')
     scaffold_block_list, iter = orient_large_blocks(scaffold_block_list, scaffolds, these_alignments, iter, n=sample_min, m=min_scaffold_size)
-
 
     # Log the total number of nucleotides that have been oriented.
     total_o = 0
@@ -286,4 +341,3 @@ if __name__ == "__main__":
 
     # Write out all of the interscaffold lengths for an example pair to see what
     # the distribution looks like.
-

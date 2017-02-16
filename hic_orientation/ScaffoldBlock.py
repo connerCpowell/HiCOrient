@@ -10,6 +10,7 @@ class ScaffoldBlock(object):
         self.orientations = ['+']
         self.lengths = [int(length)]
         self.oriented = False
+        self.is_fixed = False
 
         # Add orientations
 
@@ -52,7 +53,12 @@ class ScaffoldBlock(object):
 
         self.oriented = True
 
+        if block.is_fixed:
+            self.is_fixed = True
+
     def reverse_complement(self):
+        if self.is_fixed:
+            raise ValueError('Cannot reverse complement a fixed block. %s' % (str(self)))
         reverse_orientations = []
         for i in self.orientations:
             if i == '+':
