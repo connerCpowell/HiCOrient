@@ -286,7 +286,7 @@ if __name__ == "__main__":
     parser.add_argument('alignments', metavar='<alignments.sam>', nargs='+',
                         type=str, help='SAM files containing HiC alignments to the specified scaffolds.')
     parser.add_argument('-n', type=int, default=30, metavar='30',
-                        help='The minimum HiC event sample size needed to perform a F-test. Default = 30')
+                        help='The minimum HiC event sample size needed to perform a permutation F-test. Default = 30')
     parser.add_argument('-m', type=int, default=100000, metavar='100000',
                         help='The minimum scaffold size for consideration in phase 2. Default = 100000')
 
