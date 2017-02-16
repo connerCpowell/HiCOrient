@@ -17,7 +17,7 @@ HiCOrient can be used when a genetic map was able to cluster and order most scaf
 </ul>
 ## Dependencies
 python2.7
-scipy ** This needs to reflect specific branch I used. ***
+scipy (see specific branch in requirements.txt)
 numpy
 
 ## Installing From Source
