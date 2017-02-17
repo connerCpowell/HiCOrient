@@ -146,7 +146,9 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
                         block_a.join(block_b)
                         new_scaffold_block_list.append(block_a)
                         changes = True
+                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                     elif smallest_distance == np.mean(f_r_alignments):
+                        # Make sure not to reverse complement blocks that are fixed.
                         if not block_b.is_fixed:
                             block_b.reverse_complement()
                             block_a.join(block_b)
@@ -156,6 +158,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
                             new_scaffold_block_list.append(block_a)
                             new_scaffold_block_list.append(block_b)
                     elif smallest_distance == np.mean(r_f_alignments):
+                        # Make sure not to reverse complement blocks that are fixed.
                         if not block_a.is_fixed:
                             block_a.reverse_complement()
                             block_a.join(block_b)
@@ -165,6 +168,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
                             new_scaffold_block_list.append(block_a)
                             new_scaffold_block_list.append(block_b)
                     else:
+                        # Make sure not to reverse complement blocks that are fixed.
                         if not any([block_a.is_fixed, block_b.is_fixed]):
                             block_a.reverse_complement()
                             block_b.reverse_complement()
@@ -282,13 +286,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Orient anchored/ordered scaffolds with chromatin interaction data.')
 
     parser.add_argument('scaffolds', metavar='<scaffolds.txt>', type=str,
-                        help='An ordered list of scaffolds. First column is scaffold header, second is scaffold length.')
+                        help='An ordered list of scaffold headers. First column is scaffold header, second is scaffold length.')
     parser.add_argument('alignments', metavar='<alignments.sam>', nargs='+',
                         type=str, help='SAM files containing HiC alignments to the specified scaffolds.')
     parser.add_argument('-n', type=int, default=30, metavar='30',
                         help='The minimum HiC event sample size needed to perform a permutation F-test. Default = 30')
     parser.add_argument('-m', type=int, default=100000, metavar='100000',
-                        help='The minimum scaffold size for consideration in phase 2. Default = 100000')
+                        help='The minimum scaffold size for consideration in phase 2 (see docs). Default = 100000')
 
     parser.add_argument('--cheatWith', type=str, default='', metavar='orientations.txt',
                         help='A tab delimited file with known orientations. 1st column is scaffold name, 2nd column is +,-,?')
@@ -306,6 +310,10 @@ if __name__ == "__main__":
     # Get the ordered list of scaffold headers and associated lengths.
     scaffolds, scaffold_lengths = get_scaffolds_and_lengths(args.scaffolds)
 
+    # Log the unique IDs given to each scaffold.
+    for i in scaffolds:
+        log('scaffold %s given unique ID %r.' % (i, scaffolds.index(i)))
+
     # Make a list of scaffold block objects.
     scaffold_block_list = [ScaffoldBlock(scaffolds.index(i), j) for i, j in zip(scaffolds, scaffold_lengths)]
 
@@ -322,7 +330,7 @@ if __name__ == "__main__":
     # Run the first phase of orientation - the orientation of adjacent pairs.
     scaffold_block_list, iter = orient_adjacent_pairs(scaffold_block_list, scaffolds, these_alignments, n=sample_min)
 
-    log('\n\n\n**** Phase 2 **** \n\n\n')
+    # Phase 2
     scaffold_block_list, iter = orient_large_blocks(scaffold_block_list, scaffolds, these_alignments, iter, n=sample_min, m=min_scaffold_size)
 
     # Log the total number of nucleotides that have been oriented.

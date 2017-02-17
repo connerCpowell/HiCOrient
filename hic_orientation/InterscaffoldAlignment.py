@@ -6,8 +6,12 @@ class InterscaffoldAlignment(object):
 
     """
     def __init__(self, coord_a, coord_b):
+        """
+
+        :param coord_a: (scaffold_a, pos_a)
+        :param coord_b: (scaffold_b, pos_b)
+        """
         # Scaffold a always lesser of the two. Ordering will make the query easier.
-        # DO THIS HERE IN THE CONSTRUCTOR NOT IN A SETTER FUNCTION
         self._scaffold_a = None
         self._scaffold_b = None
         self._pos_a = []
@@ -72,9 +76,3 @@ class InterscaffoldAlignment(object):
             self._pos_b.append(coord_a[1])
 
         assert(len(self._pos_a) == len(self._pos_b))
-
-
-#{'a', 'b'} = ({'a':[]}, {'b':[]})
-
-# scaffold_10, scaffold_5
-# scaffold_5, scaffold_10

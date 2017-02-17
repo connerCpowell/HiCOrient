@@ -5,7 +5,10 @@ from ScaffoldBlock import ScaffoldBlock
 
 class ScaffoldBlockPair(object):
     """
-
+    This object represents a pair of scaffolds and the alignments between them.
+    The main utility of this class is the ability to get the collection of alignments
+    between two scaffolds. Also, this class defines utilities to get the theoretical alignments
+    associated with the reverse complementation of either or both of the scaffolds of a given pair.
     """
 
     def __init__(self, block_a, block_b):
