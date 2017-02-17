@@ -17,7 +17,7 @@ HiCOrient can be used when a genetic map was able to cluster and order most scaf
 </ul>
 ## Dependencies
 python2.7
-scipy (see specific branch in requirements.txt)
+This branch of scipy which includes permutation F test utilities (https://github.com/mortonjt/scipy/tree/anova)
 numpy
 
 ## Installing From Source
