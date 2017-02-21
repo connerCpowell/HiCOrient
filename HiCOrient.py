@@ -98,6 +98,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
     """
     iteration = 0
     while True:
+        log('Beginning iteration %r of phase 1.' % iteration)
         write_summary(in_scaffold_blocks, in_scaffolds, 'iteration_' + str(iteration) + '_results.txt')
         iteration += 1
 
@@ -122,9 +123,6 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
                 # If we reject the null hypothesis, reverse complement if necessary and join the two blocks.
                 # Otherwise, keep the blocks as is.
                 if p_value < 0.05:
-                    s1 = ' :: '
-                    print block_a, s1, block_b
-                    print p_value
 
                     # Get the smallest of the means.
                     all_means = sorted(
@@ -154,6 +152,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
                             block_a.join(block_b)
                             new_scaffold_block_list.append(block_a)
                             changes = True
+                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                         else:
                             new_scaffold_block_list.append(block_a)
                             new_scaffold_block_list.append(block_b)
@@ -164,6 +163,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
                             block_a.join(block_b)
                             new_scaffold_block_list.append(block_a)
                             changes = True
+                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                         else:
                             new_scaffold_block_list.append(block_a)
                             new_scaffold_block_list.append(block_b)
@@ -175,6 +175,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
                             block_a.join(block_b)
                             new_scaffold_block_list.append(block_a)
                             changes = True
+                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                         else:
                             new_scaffold_block_list.append(block_a)
                             new_scaffold_block_list.append(block_b)
@@ -196,10 +197,10 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
         if not changes:
             break
 
-    return in_scaffold_blocks, iteration
+    return in_scaffold_blocks
 
 
-def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, iteration, n=30, m=100000):
+def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, n=30, m=100000):
     """
     The second phase of HiC based orientation. Here, no attempt will be made to extend blocks.
     Rather, large blocks will be compared to each other and will be oriented in place. This means that
@@ -230,9 +231,6 @@ def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, iteration,
             # If we reject the null hypothesis, reverse complement if necessary, but do not join the two blocks.
             # Otherwise, keep the blocks as is.
             if p_value < 0.05:
-                s1 = ' :: '
-                print block_a, s1, block_b
-                print p_value
 
                 # Get the smallest of the means.
                 all_means = sorted(
@@ -251,31 +249,31 @@ def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, iteration,
 
                 # Find the orientations which yield the smallest mean and orient accordingly.
                 if smallest_distance == np.mean(f_f_alignments):
-                    print 'ff'
-                    pass
+                    # Orientations are already accurate
+                    block_a.oriented = True
+                    block_b.oriented = True
+                    log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                 elif smallest_distance == np.mean(f_r_alignments):
                     if not in_scaffold_blocks[in_scaffold_blocks.index(block_b)].is_fixed:
                         in_scaffold_blocks[in_scaffold_blocks.index(block_b)].reverse_complement()
                         block_a.oriented = True
                         block_b.oriented = True
-                        print 'fr'
+                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                 elif smallest_distance == np.mean(r_f_alignments):
                     if not in_scaffold_blocks[in_scaffold_blocks.index(block_a)].is_fixed:
                         in_scaffold_blocks[in_scaffold_blocks.index(block_a)].reverse_complement()
                         block_a.oriented = True
                         block_b.oriented = True
-                        print 'rf'
+                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                 else:
                     if not any([in_scaffold_blocks[in_scaffold_blocks.index(block_a)].is_fixed, in_scaffold_blocks[in_scaffold_blocks.index(block_b)].is_fixed]):
                         in_scaffold_blocks[in_scaffold_blocks.index(block_a)].reverse_complement()
                         in_scaffold_blocks[in_scaffold_blocks.index(block_b)].reverse_complement()
                         block_a.oriented = True
                         block_b.oriented = True
-                        print 'rr'
+                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
 
-    #iteration += 1
-    write_summary(in_scaffold_blocks, in_scaffolds, 'iteration_' + str(iteration) + '_results.txt')
-    return in_scaffold_blocks, iteration
+    return in_scaffold_blocks
 
 if __name__ == "__main__":
     import argparse
@@ -328,10 +326,12 @@ if __name__ == "__main__":
     these_alignments = parse_sam(alignment_files, scaffolds)
 
     # Run the first phase of orientation - the orientation of adjacent pairs.
-    scaffold_block_list, iter = orient_adjacent_pairs(scaffold_block_list, scaffolds, these_alignments, n=sample_min)
+    scaffold_block_list = orient_adjacent_pairs(scaffold_block_list, scaffolds, these_alignments, n=sample_min)
 
     # Phase 2
-    scaffold_block_list, iter = orient_large_blocks(scaffold_block_list, scaffolds, these_alignments, iter, n=sample_min, m=min_scaffold_size)
+    log('Beginning phase 2.')
+    scaffold_block_list = orient_large_blocks(scaffold_block_list, scaffolds, these_alignments, n=sample_min, m=min_scaffold_size)
+    write_summary(scaffold_block_list, scaffolds, 'final_iteration_results.txt')
 
     # Log the total number of nucleotides that have been oriented.
     total_o = 0
@@ -339,13 +339,10 @@ if __name__ == "__main__":
         if block.oriented:
             total_o += sum(block.lengths)
 
-    log('the total number of nucleotides oriented is %r' % total_o)
+    log('The total number of nucleotides oriented is %r' % total_o)
 
     total = 0
     for block in scaffold_block_list:
         total += sum(block.lengths)
 
-    log('the total number of nucleotides is %r' % total)
-
-    # Write out all of the interscaffold lengths for an example pair to see what
-    # the distribution looks like.
+    log('The total number of nucleotides is %r' % total)
