@@ -73,7 +73,7 @@ def set_cheats(in_cheat_file, scaffold_blocks, scaffold_list):
             cheat_scaffold, cheat_orientation = line.rstrip().split('\t')
             cheat_scaffold_index = scaffold_list.index(cheat_scaffold)
             if cheat_scaffold_index != block.scaffolds[0]:
-                raise ValueError('Cheat file and scaffolds are out of order %s and %s.' % (cheat_scaffold, block.scaffolds[0]))
+                raise ValueError('Cheat file and scaffolds are out of order %s and %s.' % (cheat_scaffold, scaffold_list[block.scaffolds[0]]))
             if cheat_orientation == '?':
                 continue
             elif cheat_orientation == '-':
@@ -141,41 +141,41 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
 
                     # Find the orientations which yield the smallest mean and orient accordingly.
                     if smallest_distance == np.mean(f_f_alignments):
+                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                         block_a.join(block_b)
                         new_scaffold_block_list.append(block_a)
                         changes = True
-                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                     elif smallest_distance == np.mean(f_r_alignments):
                         # Make sure not to reverse complement blocks that are fixed.
                         if not block_b.is_fixed:
+                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                             block_b.reverse_complement()
                             block_a.join(block_b)
                             new_scaffold_block_list.append(block_a)
                             changes = True
-                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                         else:
                             new_scaffold_block_list.append(block_a)
                             new_scaffold_block_list.append(block_b)
                     elif smallest_distance == np.mean(r_f_alignments):
                         # Make sure not to reverse complement blocks that are fixed.
                         if not block_a.is_fixed:
+                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                             block_a.reverse_complement()
                             block_a.join(block_b)
                             new_scaffold_block_list.append(block_a)
                             changes = True
-                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                         else:
                             new_scaffold_block_list.append(block_a)
                             new_scaffold_block_list.append(block_b)
                     else:
                         # Make sure not to reverse complement blocks that are fixed.
                         if not any([block_a.is_fixed, block_b.is_fixed]):
+                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                             block_a.reverse_complement()
                             block_b.reverse_complement()
                             block_a.join(block_b)
                             new_scaffold_block_list.append(block_a)
                             changes = True
-                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
                         else:
                             new_scaffold_block_list.append(block_a)
                             new_scaffold_block_list.append(block_b)
