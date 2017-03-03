@@ -2,24 +2,29 @@ __author__ = 'malonge'
 
 
 class ScaffoldBlock(object):
-    """
-    This class represents a block of ordered scaffolds. The purpose of this representation is to
-    fix orientations into oriented blocks. In other words, if two scaffolds are oriented, they can
-    become a block, and the orientation of these two scaffolds relative to each other will always stay fixed.
-    All chromosomes start with each scaffold as its own block. Accordingly, at minimum, one scaffold and
-    its length is needed to instantiate this object. A chromosome that is 100% oriented will, at the
-    end be one large block made up of every scaffold.
-    """
 
     def __init__(self, scaffold, length):
         """
+        A ScaffoldBlock is an object designed to bind consecutive scaffolds and their relative orientations
+        while still maintaining them as separate entities.
 
-        :param scaffold:
-        :param length:
+        At minimum, a scaffold block must contain one scaffold.
+
+        :param scaffold: Integer associated with a scaffold header.
+        :param length: Length of this scaffold.
         """
+        if not isinstance(scaffold, int):
+            raise TypeError('Scaffold must be an integer.')
+
+        if not isinstance(length, int):
+            raise TypeError('Scaffold must be an integer.')
+
+        if not length:
+            raise ValueError('Scaffold length must have length > 0.')
+
         self.scaffolds = [scaffold]
         self.orientations = ['+']
-        self.lengths = [int(length)]
+        self.lengths = [length]
         self.oriented = False
         self.is_fixed = False
 
@@ -43,13 +48,21 @@ class ScaffoldBlock(object):
 
         return any(i != j for i, j in zip(self.scaffolds, block.scaffolds))
 
+    def _is_consecutive(self, in_scaffolds):
+        new_scaffolds = self.scaffolds + in_scaffolds
+        standard = [i for i in range(new_scaffolds[0], new_scaffolds[-1] + 1)]
+        return new_scaffolds == standard
+
     def join(self, block):
         """
         Join the contents of another block with this one.
         :param block:
         """
         if not isinstance(block, ScaffoldBlock):
-            raise ValueError('Can only join this block to another ScaffoldBlock not to %s.' %(str(type(block))))
+            raise TypeError('Can only join this block to another ScaffoldBlock not to %s.' %(str(type(block))))
+
+        if not self._is_consecutive(block.scaffolds):
+            raise ValueError('Can only join consecutive scaffolds. %s and %s are not consecutive.' %(str(self), str(block)))
 
         for i in block.scaffolds:
             self.scaffolds.append(i)
@@ -69,7 +82,7 @@ class ScaffoldBlock(object):
         """ Reverse complement every scaffold in this block. """
         # Make sure that this block has not been fixed.
         if self.is_fixed:
-            raise ValueError('Cannot reverse complement a fixed block. %s' % (str(self)))
+            raise RuntimeError('Cannot reverse complement a fixed block. %s' % (str(self)))
 
         # Iterate through each orientation and reverse complement.
         reverse_orientations = []

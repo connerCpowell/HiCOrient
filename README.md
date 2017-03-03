@@ -1,6 +1,6 @@
 # HiCOrient
 
-<b>HiCOrient</b> is a tool that uses HiC chromatin interaction data to orient a collection of ordered scaffolds. The process of achieving a 
+__HiCOrient__ is a tool that uses HiC chromatin interaction data to orient a collection of ordered scaffolds. The process of achieving a 
 chromosome scale assembly from a draft assembly often involves 3 steps:
 
 1. Clustering of scaffolds into pseudo molecules/chromosomes
@@ -11,15 +11,13 @@ HiCOrient can be used when a genetic map was able to cluster and order most scaf
 
 # Installing HiCOrient
 ## Platforms
-<ul>
-  <li>Linux</li>
-  <li>Mac OSX</li>
-</ul>
+- Linux
+- Mac OSX
 ## Dependencies
-python2.7
-numpy
-cython
-A particular branch of scipy that includes functionality fo permutation F tests.
+- python2.7
+- numpy
+- cython
+- A particular branch of scipy that includes functionality fo permutation F tests.
 
 The following instructions are an example of how to install these dependencies,
 and then HiCOrient. I recommend using a virtual environment, especially considering
@@ -71,4 +69,17 @@ optional arguments:
 ```
 usage: orient_fasta.py [-h] [--prefix PREFIX]
                        <scaffolds.fasta> <orientations.txt>
+
+Orient scaffolds fasta file according to HiCOrient output.
+
+positional arguments:
+  <scaffolds.fasta>   Fasta file containing sequences to be oriented.
+  <orientations.txt>  HiCOrient results tsv file.
+
+optional arguments:
+  -h, --help          show this help message and exit
+  --prefix PREFIX     Prefix to use for output files.
 ```
+
+# Elaboration
+

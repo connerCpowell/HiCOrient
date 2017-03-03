@@ -37,8 +37,8 @@ if __name__ == "__main__":
     from hic_orientation.SeqReader import SeqReader
 
     parser = argparse.ArgumentParser(description='Orient scaffolds fasta file according to HiCOrient output.')
-    parser.add_argument('scaffolds', metavar="<scaffolds.fasta>", type=str, help='fasta file containing oriented sequences')
-    parser.add_argument('orientations', metavar="<orientations.txt>", type=str, help='HiCOrient results tsv file')
+    parser.add_argument('scaffolds', metavar="<scaffolds.fasta>", type=str, help='Fasta file containing sequences to be oriented.')
+    parser.add_argument('orientations', metavar="<orientations.txt>", type=str, help='HiCOrient results tsv file.')
     parser.add_argument('--prefix', type=str, help='Prefix to use for output files.')
 
     args = parser.parse_args()
