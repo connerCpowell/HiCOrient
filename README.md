@@ -17,20 +17,33 @@ HiCOrient can be used when a genetic map was able to cluster and order most scaf
 </ul>
 ## Dependencies
 python2.7
-This branch of scipy which includes permutation F test utilities (https://github.com/mortonjt/scipy/tree/anova)
 numpy
+cython
+A particular branch of scipy that includes functionality fo permutation F tests.
+
+The following instructions are an example of how to install these dependencies,
+and then HiCOrient. I recommend using a virtual environment, especially considering
+the dependency on an unmerged branch of scipy.
 
 ## Installing From Source
 The only way to install HiCOrient is from source. To install, execute the following commands:
 
 ```
-$git clone https://github.com/malonge/HiCOrient
-$cd HiCOrient
-$pip install -r requirements.txt
-$python setup.py install
+$ virtualenv VE
+$ . VE/bin/activate
+(VE)$ pip install numpy
+(VE)$ pip install cython
+(VE)$ git clone -b anova https://github.com/malonge/scipy
+(VE)$ cd scipy
+(VE)$ python setup.py install
+(VE)$ cd ..
+(VE)$ git clone https://github.com/malonge/HiCOrient
+(VE)$ cd HiCOrient
+(VE)$ python setup.py install
 ```
 
 # Command Line Usage
+## HiCOrient.py
 ```
 usage: HiCOrient.py [-h] [-n 30] [-m 100000] [--cheatWith orientations.txt]
                     <scaffolds.txt> <alignments.sam> [<alignments.sam> ...]
@@ -52,4 +65,10 @@ optional arguments:
   --cheatWith orientations.txt
                         A tab delimited file with known orientations. 1st
                         column is scaffold name, 2nd column is +,-,?
+```
+
+## orient_fasta.py
+```
+usage: orient_fasta.py [-h] [--prefix PREFIX]
+                       <scaffolds.fasta> <orientations.txt>
 ```
