@@ -48,9 +48,9 @@ def parse_sam(in_sams, headers):
                     coord_1 = (scaffold_1, int(L1[3]))
                     coord_2 = (scaffold_2, int(L1[7]))
                     if scaffold_pair in alignments.keys():
-                        alignments[scaffold_pair].add_alignment(coord_1, coord_2)
+                        alignments[scaffold_pair].add_alignment(coord_1[0], coord_1[1], coord_2[0], coord_2[1])
                     else:
-                        alignments[scaffold_pair] = InterscaffoldAlignment(coord_1, coord_2)
+                        alignments[scaffold_pair] = InterscaffoldAlignment(coord_1[0], coord_1[1], coord_2[0], coord_2[1])
 
     return alignments
 

@@ -5,12 +5,26 @@ class InterscaffoldAlignment(object):
     """
 
     """
-    def __init__(self, coord_a, coord_b):
+    def __init__(self, scaffold_a, coord_a, scaffold_b, coord_b):
         """
 
-        :param coord_a: (scaffold_a, pos_a)
-        :param coord_b: (scaffold_b, pos_b)
+        :param scaffold_a:
+        :param coord_a:
+        :param scaffold_b:
+        :param coord_b:
         """
+
+        if not isinstance(scaffold_a, int):
+            raise TypeError('scaffold_a must be an integer')
+
+        if not isinstance(scaffold_b, int):
+            raise TypeError('scaffold_b must be an integer')
+
+        if not isinstance(coord_a, int):
+            raise TypeError('coord_a must be an integer')
+
+        if not isinstance(coord_b, int):
+            raise TypeError('coord_b must be an integer')
         # Scaffold a always lesser of the two. Ordering will make the query easier.
         self._scaffold_a = None
         self._scaffold_b = None
@@ -18,17 +32,17 @@ class InterscaffoldAlignment(object):
         self._pos_b = []
 
         # Set the values here. A is always smaller
-        if coord_a[0] < coord_b[0]:
-            self._scaffold_a = coord_a[0]
-            self._pos_a.append(coord_a[1])
-            self._scaffold_b = coord_b[0]
-            self._pos_b.append(coord_b[1])
+        if scaffold_a < scaffold_b:
+            self._scaffold_a = scaffold_a
+            self._pos_a.append(coord_a)
+            self._scaffold_b = scaffold_b
+            self._pos_b.append(coord_b)
 
-        elif coord_a[0] > coord_b[0]:
-            self._scaffold_a = coord_b[0]
-            self._pos_a.append(coord_b[1])
-            self._scaffold_b = coord_a[0]
-            self._pos_b.append(coord_a[1])
+        elif scaffold_a > scaffold_b:
+            self._scaffold_a = scaffold_b
+            self._pos_a.append(coord_b)
+            self._scaffold_b = scaffold_a
+            self._pos_b.append(coord_a)
         else:
             raise ValueError('Cannot instantiate this class with a pair of identical scaffolds.')
 
@@ -57,22 +71,23 @@ class InterscaffoldAlignment(object):
     def _scaffold_set(self):
         return {self._scaffold_a, self._scaffold_b}
 
-    def add_alignment(self, coord_a, coord_b):
+    def add_alignment(self, scaffold_a, coord_a, scaffold_b, coord_b):
         """
 
+        :param scaffold_a:
         :param coord_a:
+        :param scaffold_b:
         :param coord_b:
-        :return:
         """
-        if {coord_a[0], coord_b[0]} != self._scaffold_set:
+        if {scaffold_a, scaffold_b} != self._scaffold_set:
             raise ValueError()
 
-        if coord_a[0] < coord_b[0]:
-            self._pos_a.append(coord_a[1])
-            self._pos_b.append(coord_b[1])
+        if scaffold_a < scaffold_b:
+            self._pos_a.append(coord_a)
+            self._pos_b.append(coord_b)
 
         else:
-            self._pos_a.append(coord_b[1])
-            self._pos_b.append(coord_a[1])
+            self._pos_a.append(coord_b)
+            self._pos_b.append(coord_a)
 
         assert(len(self._pos_a) == len(self._pos_b))

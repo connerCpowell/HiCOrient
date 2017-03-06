@@ -6,6 +6,7 @@ import numpy as np
 
 from hic_orientation.ScaffoldBlock import ScaffoldBlock
 from hic_orientation.ScaffoldBlockPair import ScaffoldBlockPair
+from hic_orientation.utilities import log
 
 
 def iterate_pairs(iterable):
@@ -85,9 +86,10 @@ def set_cheats(in_cheat_file, scaffold_blocks, scaffold_list):
                 block.is_fixed = True
             else:
                 raise ValueError('Orientation may only be ?, -, or +')
+    return scaffold_blocks
 
 
-def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
+def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30, p=1000):
     """
 
     :param in_scaffold_blocks:
@@ -118,7 +120,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
 
             # Perform t-test on these two lists of interscaffold alignment distances.
             if len(f_f_alignments) >= n:
-                statistic, p_value = stats.f_oneway(f_f_alignments, f_r_alignments, r_f_alignments, r_r_alignments, permutations=1000)
+                statistic, p_value = stats.f_oneway(f_f_alignments, f_r_alignments, r_f_alignments, r_r_alignments, permutations=p)
 
                 # If we reject the null hypothesis, reverse complement if necessary and join the two blocks.
                 # Otherwise, keep the blocks as is.
@@ -200,17 +202,17 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30):
     return in_scaffold_blocks
 
 
-def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, n=30, m=100000):
+def orient_large_blocks(in_scaffold_blocks, alignments, n=30, m=100000, p=1000):
     """
     The second phase of HiC based orientation. Here, no attempt will be made to extend blocks.
     Rather, large blocks will be compared to each other and will be oriented in place. This means that
     blocks that are not adjacent can be compared. The difference is that if there is a statistically
     significant orientation found, these orientations will be executed, but blocks will not be extended.
     :param in_scaffold_blocks:
-    :param in_scaffolds:
     :param alignments:
-    :param n:
-    :param m:
+    :param n: Minimum sample size needed to perform a permutation F test
+    :param m: minimum block size to be considered for this utility
+    :param p: Number of permutations
     :return:
     """
     # Get a list of all blocks that either have more than one scaffold, or have a scaffold length >= 1 million
@@ -227,7 +229,7 @@ def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, n=30, m=10
 
         # Perform t-test on these two lists of interscaffold alignment distances.
         if len(f_f_alignments) >= n:
-            statistic, p_value = stats.f_oneway(f_f_alignments, f_r_alignments, r_f_alignments, r_r_alignments, permutations=1000)
+            statistic, p_value = stats.f_oneway(f_f_alignments, f_r_alignments, r_f_alignments, r_r_alignments, permutations=p)
             # If we reject the null hypothesis, reverse complement if necessary, but do not join the two blocks.
             # Otherwise, keep the blocks as is.
             if p_value < 0.05:
@@ -275,11 +277,12 @@ def orient_large_blocks(in_scaffold_blocks, in_scaffolds, alignments, n=30, m=10
 
     return in_scaffold_blocks
 
-if __name__ == "__main__":
+
+def main():
+
     import argparse
 
     from hic_orientation.utilities import parse_sam
-    from hic_orientation.utilities import log
 
     parser = argparse.ArgumentParser(description='Orient anchored/ordered scaffolds with chromatin interaction data.')
 
@@ -291,6 +294,9 @@ if __name__ == "__main__":
                         help='The minimum HiC event sample size needed to perform a permutation F-test. Default = 30')
     parser.add_argument('-m', type=int, default=100000, metavar='100000',
                         help='The minimum scaffold size for consideration in phase 2 (see docs). Default = 100000')
+
+    parser.add_argument('-p', type=int, default=1000, metavar='1000',
+                        help='Number of permutations in the permutation F test. Default = 1000.')
 
     parser.add_argument('--cheatWith', type=str, default='', metavar='orientations.txt',
                         help='A tab delimited file with known orientations. 1st column is scaffold name, 2nd column is +,-,?')
@@ -304,6 +310,7 @@ if __name__ == "__main__":
     sample_min = args.n
     min_scaffold_size = args.m
     cheat_file = args.cheatWith
+    perms = args.p
 
     # Get the ordered list of scaffold headers and associated lengths.
     scaffolds, scaffold_lengths = get_scaffolds_and_lengths(args.scaffolds)
@@ -317,7 +324,7 @@ if __name__ == "__main__":
 
     # Add cheat info if it is available
     if cheat_file:
-        set_cheats(cheat_file, scaffold_block_list, scaffolds)
+        scaffold_block_list = set_cheats(cheat_file, scaffold_block_list, scaffolds)
 
     # Parse the alignment data
     # Send each sam/bam file to a method that will return the parsed info as a dictionary.
@@ -326,11 +333,11 @@ if __name__ == "__main__":
     these_alignments = parse_sam(alignment_files, scaffolds)
 
     # Run the first phase of orientation - the orientation of adjacent pairs.
-    scaffold_block_list = orient_adjacent_pairs(scaffold_block_list, scaffolds, these_alignments, n=sample_min)
+    scaffold_block_list = orient_adjacent_pairs(scaffold_block_list, scaffolds, these_alignments, n=sample_min, p=perms)
 
     # Phase 2
     log('Beginning phase 2.')
-    scaffold_block_list = orient_large_blocks(scaffold_block_list, scaffolds, these_alignments, n=sample_min, m=min_scaffold_size)
+    scaffold_block_list = orient_large_blocks(scaffold_block_list, these_alignments, n=sample_min, m=min_scaffold_size, p=perms)
     write_summary(scaffold_block_list, scaffolds, 'final_iteration_results.txt')
 
     # Log the total number of nucleotides that have been oriented.
@@ -346,3 +353,6 @@ if __name__ == "__main__":
         total += sum(block.lengths)
 
     log('The total number of nucleotides is %r' % total)
+
+if __name__ == "__main__":
+    main()
