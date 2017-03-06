@@ -55,7 +55,9 @@ class ScaffoldBlock(object):
 
     def join(self, block):
         """
-        Join the contents of another block with this one.
+        Join the contents of another block with this one. The join must result in a
+        consecutive block of scaffolds. In other words, only adjancent blocks (in terms of order),
+        may be joined.
         :param block:
         """
         if not isinstance(block, ScaffoldBlock):
