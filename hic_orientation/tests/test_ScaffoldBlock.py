@@ -1,5 +1,4 @@
 __author__ = 'malonge'
-import os
 import unittest
 
 from hic_orientation.ScaffoldBlock import ScaffoldBlock

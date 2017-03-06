@@ -11,9 +11,12 @@ HiCOrient can be used when a genetic map was able to cluster and order most scaf
 
 # Installing HiCOrient
 ## Platforms
+
 - Linux
 - Mac OSX
+
 ## Dependencies
+
 - python2.7
 - numpy
 - cython
