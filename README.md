@@ -20,7 +20,7 @@ HiCOrient can be used when a genetic map was able to cluster and order most scaf
 - python2.7
 - numpy
 - cython
-- A particular branch of scipy that includes functionality fo permutation F tests.
+- A particular branch of scipy that includes functionality for permutation F tests.
 
 The following instructions are an example of how to install these dependencies,
 and then HiCOrient. I recommend using a virtual environment, especially considering

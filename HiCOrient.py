@@ -9,13 +9,17 @@ from hic_orientation.ScaffoldBlockPair import ScaffoldBlockPair
 from hic_orientation.utilities import log
 
 
-def iterate_pairs(iterable):
+def iterate_pairs(iterable, off_set=False):
     """
 
     :param iterable:
     :return:
     """
-    for i in range(0, len(iterable), 2):
+    if off_set:
+        start = 1
+    else:
+        start = 0
+    for i in range(start, len(iterable), 2):
         try:
             a = iterable[i]
             b = iterable[i+1]
@@ -99,6 +103,8 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30, p=
     :return:
     """
     iteration = 0
+    off_set = False
+    tried_off_set = False
     while True:
         log('Beginning iteration %r of phase 1.' % iteration)
         write_summary(in_scaffold_blocks, in_scaffolds, 'iteration_' + str(iteration) + '_results.txt')
@@ -106,8 +112,10 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30, p=
 
         # Take pairs, in order, from the scaffold block list and start comparing them.
         new_scaffold_block_list = []
+        if off_set:
+            new_scaffold_block_list.append(in_scaffold_blocks[0])
         changes = False
-        for block_a, block_b in iterate_pairs(in_scaffold_blocks):
+        for block_a, block_b in iterate_pairs(in_scaffold_blocks, off_set=off_set):
             # Instantiate a ScaffoldBlockPair object with these two blocks.
             this_block_pair = ScaffoldBlockPair(block_a, block_b)
 
@@ -143,14 +151,14 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30, p=
 
                     # Find the orientations which yield the smallest mean and orient accordingly.
                     if smallest_distance == np.mean(f_f_alignments):
-                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
+                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (len(f_f_alignments), str(block_a), str(block_b), p_value))
                         block_a.join(block_b)
                         new_scaffold_block_list.append(block_a)
                         changes = True
                     elif smallest_distance == np.mean(f_r_alignments):
                         # Make sure not to reverse complement blocks that are fixed.
                         if not block_b.is_fixed:
-                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
+                            log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (len(f_f_alignments), str(block_a), str(block_b), p_value))
                             block_b.reverse_complement()
                             block_a.join(block_b)
                             new_scaffold_block_list.append(block_a)
@@ -161,7 +169,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30, p=
                     elif smallest_distance == np.mean(r_f_alignments):
                         # Make sure not to reverse complement blocks that are fixed.
                         if not block_a.is_fixed:
-                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
+                            log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (len(f_f_alignments), str(block_a), str(block_b), p_value))
                             block_a.reverse_complement()
                             block_a.join(block_b)
                             new_scaffold_block_list.append(block_a)
@@ -172,7 +180,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30, p=
                     else:
                         # Make sure not to reverse complement blocks that are fixed.
                         if not any([block_a.is_fixed, block_b.is_fixed]):
-                            log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
+                            log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (len(f_f_alignments), str(block_a), str(block_b), p_value))
                             block_a.reverse_complement()
                             block_b.reverse_complement()
                             block_a.join(block_b)
@@ -190,14 +198,30 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=30, p=
                 new_scaffold_block_list.append(block_b)
 
         # If the scaffold block list is odd, include the odd block out for the next iteration.
-        if len(in_scaffold_blocks) % 2 != 0:
+        if len(in_scaffold_blocks) % 2 != 0 and not off_set:
             new_scaffold_block_list.append(in_scaffold_blocks[-1])
+
+        if len(in_scaffold_blocks) % 2 == 0 and off_set:
+            new_scaffold_block_list.append(in_scaffold_blocks[-1])
+
         in_scaffold_blocks = new_scaffold_block_list
 
         # If there have been no improvements from the previous iteration, break out of this loop.
         # Move on to next stage: Instead of orienting contiguous scaffolds, orient blocks relative to each other.
+        # Explain the off_set strategy.
         if not changes:
-            break
+            if tried_off_set:
+                log('No more changes to be made in phase 1.')
+                break
+            if off_set:
+                off_set = False
+                tried_off_set = True
+            else:
+                off_set = True
+                tried_off_set = True
+        else:
+            tried_off_set = False
+            off_set = False
 
     return in_scaffold_blocks
 
@@ -254,26 +278,26 @@ def orient_large_blocks(in_scaffold_blocks, alignments, n=30, m=100000, p=1000):
                     # Orientations are already accurate
                     block_a.oriented = True
                     block_b.oriented = True
-                    log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
+                    log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (len(f_f_alignments), str(block_a), str(block_b), p_value))
                 elif smallest_distance == np.mean(f_r_alignments):
                     if not in_scaffold_blocks[in_scaffold_blocks.index(block_b)].is_fixed:
                         in_scaffold_blocks[in_scaffold_blocks.index(block_b)].reverse_complement()
                         block_a.oriented = True
                         block_b.oriented = True
-                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
+                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (len(f_f_alignments), str(block_a), str(block_b), p_value))
                 elif smallest_distance == np.mean(r_f_alignments):
                     if not in_scaffold_blocks[in_scaffold_blocks.index(block_a)].is_fixed:
                         in_scaffold_blocks[in_scaffold_blocks.index(block_a)].reverse_complement()
                         block_a.oriented = True
                         block_b.oriented = True
-                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
+                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (len(f_f_alignments), str(block_a), str(block_b), p_value))
                 else:
                     if not any([in_scaffold_blocks[in_scaffold_blocks.index(block_a)].is_fixed, in_scaffold_blocks[in_scaffold_blocks.index(block_b)].is_fixed]):
                         in_scaffold_blocks[in_scaffold_blocks.index(block_a)].reverse_complement()
                         in_scaffold_blocks[in_scaffold_blocks.index(block_b)].reverse_complement()
                         block_a.oriented = True
                         block_b.oriented = True
-                        log('Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (str(block_a), str(block_b), p_value))
+                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s with a p-value of %f' % (len(f_f_alignments), str(block_a), str(block_b), p_value))
 
     return in_scaffold_blocks
 
@@ -303,7 +327,6 @@ def main():
 
     args = parser.parse_args()
     scaffolds_file = args.scaffolds
-    # For now, just SAM files.
     alignment_files = args.alignments
 
     # Get the optional flags
@@ -313,7 +336,7 @@ def main():
     perms = args.p
 
     # Get the ordered list of scaffold headers and associated lengths.
-    scaffolds, scaffold_lengths = get_scaffolds_and_lengths(args.scaffolds)
+    scaffolds, scaffold_lengths = get_scaffolds_and_lengths(scaffolds_file)
 
     # Log the unique IDs given to each scaffold.
     for i in scaffolds:
@@ -324,6 +347,7 @@ def main():
 
     # Add cheat info if it is available
     if cheat_file:
+        log('Cheating with %s' % cheat_file)
         scaffold_block_list = set_cheats(cheat_file, scaffold_block_list, scaffolds)
 
     # Parse the alignment data
