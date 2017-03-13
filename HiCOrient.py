@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 __author__ = 'malonge'
 
-from scipy import stats
 import numpy as np
 
 from hic_orientation.ScaffoldBlock import ScaffoldBlock
@@ -178,7 +177,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=100):
 
                 # Find the orientations which yield the smallest mean and orient accordingly.
                 if smallest_distance == np.mean(f_f_alignments):
-                    log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s).' % (len(f_f_alignments), str(block_a), str(block_b)))
+                    log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s.' % (len(f_f_alignments), str(block_a), str(block_b)))
                     block_a.join(block_b)
                     block_a.is_fixed = True
                     new_scaffold_block_list.append(block_a)
@@ -186,7 +185,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=100):
                 elif smallest_distance == np.mean(f_r_alignments):
                     # Make sure not to reverse complement blocks that are fixed.
                     if not block_b.is_fixed:
-                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s).' % (len(f_f_alignments), str(block_a), str(block_b)))
+                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s.' % (len(f_f_alignments), str(block_a), str(block_b)))
                         block_b.reverse_complement()
                         block_a.join(block_b)
                         block_a.is_fixed = True
@@ -198,7 +197,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=100):
                 elif smallest_distance == np.mean(r_f_alignments):
                     # Make sure not to reverse complement blocks that are fixed.
                     if not block_a.is_fixed:
-                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s).' % (len(f_f_alignments), str(block_a), str(block_b)))
+                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s.' % (len(f_f_alignments), str(block_a), str(block_b)))
                         block_a.reverse_complement()
                         block_a.join(block_b)
                         block_a.is_fixed = True
@@ -210,7 +209,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=100):
                 else:
                     # Make sure not to reverse complement blocks that are fixed.
                     if not any([block_a.is_fixed, block_b.is_fixed]):
-                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s).' % (len(f_f_alignments), str(block_a), str(block_b)))
+                        log('With %r alignments between them, Scaffold(s) %s were oriented relative to scaffold(s) %s.' % (len(f_f_alignments), str(block_a), str(block_b)))
                         block_a.reverse_complement()
                         block_b.reverse_complement()
                         block_a.join(block_b)
@@ -351,7 +350,7 @@ def main():
                         help='An ordered list of scaffold headers. First column is scaffold header, second is scaffold length.')
     parser.add_argument('alignments', metavar='<alignments.sam>', nargs='+',
                         type=str, help='SAM files containing HiC alignments to the specified scaffolds.')
-    parser.add_argument('-n', type=int, default=100, metavar='30',
+    parser.add_argument('-n', type=int, default=100, metavar='100',
                         help='The minimum HiC event sample size needed to perform a permutation F-test. Default = 30')
     parser.add_argument('-m', type=int, default=100000, metavar='100000',
                         help='The minimum scaffold size for consideration in phase 2. Default = 100000')

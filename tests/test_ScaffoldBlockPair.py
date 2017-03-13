@@ -62,4 +62,4 @@ class ScaffoldBlockPairTest(unittest.TestCase):
 
     def test_get_ISD_3_scaf_rr(self):
         alns = self.second_scaffold_pair.get_interscaffold_distances(self.alignments, reverse_a=True, reverse_b=True)
-        self.assertEqual(alns, [10, 19])
+        self.assertEqual(alns, [6, 24])
