@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a0f22824-ca11-4bbb-9167-f745106d6791" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/HiCOrient.py" afterPath="$PROJECT_DIR$/HiCOrient.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tests/test_ScaffoldBlockPair.py" afterPath="$PROJECT_DIR$/tests/test_ScaffoldBlockPair.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="HiCOrient.iws" />
@@ -542,7 +540,13 @@
       <option name="project" value="LOCAL" />
       <updated>1489429277576</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="removed unused scipy import statement">
+      <created>1489436712553</created>
+      <option name="number" value="00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1489436712553</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -603,7 +607,8 @@
     <MESSAGE value="Add documentation" />
     <MESSAGE value="Added permutation number command line argument. Put &quot;main&quot; code inside of a proper main() function." />
     <MESSAGE value="Orientations are made based on the lowest mean interscaffold distance. Added unit tests." />
-    <option name="LAST_COMMIT_MESSAGE" value="Orientations are made based on the lowest mean interscaffold distance. Added unit tests." />
+    <MESSAGE value="removed unused scipy import statement" />
+    <option name="LAST_COMMIT_MESSAGE" value="removed unused scipy import statement" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
