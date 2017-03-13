@@ -338,6 +338,36 @@ def orient_large_blocks(in_scaffold_blocks, alignments, n=100, m=100000):
     return in_scaffold_blocks
 
 
+def get_tabu_file(in_scaffold_blocks, alignments):
+    for block_a, block_b in slide_pairs(in_scaffold_blocks):
+        this_block_pair = ScaffoldBlockPair(block_a, block_b)
+
+        # Get the interscaffold alignment distances for both cases.
+        f_f_alignments = this_block_pair.get_interscaffold_distances(alignments)
+        f_f_alignments = remove_outliers(f_f_alignments)
+
+        f_r_alignments = this_block_pair.get_interscaffold_distances(alignments, reverse_b=True)
+        f_r_alignments = remove_outliers(f_r_alignments)
+
+        r_f_alignments = this_block_pair.get_interscaffold_distances(alignments, reverse_a=True)
+        r_f_alignments = remove_outliers(r_f_alignments)
+
+        r_r_alignments = this_block_pair.get_interscaffold_distances(alignments, reverse_a=True, reverse_b=True)
+        r_r_alignments = remove_outliers(r_r_alignments)
+
+        with open('tabu_search_read_alignments.txt', 'a') as out_file:
+            block_n = str(block_a.scaffolds[0] + 1)
+            distance_ff = str(sum(f_f_alignments))
+            distance_fr = str(sum(f_r_alignments))
+            distance_rf = str(sum(r_f_alignments))
+            distance_rr = str(sum(r_r_alignments))
+
+            out_file.write('%s\t%s\t%s\n' % (block_n, 'FF', distance_ff))
+            out_file.write('%s\t%s\t%s\n' % (block_n, 'FR', distance_fr))
+            out_file.write('%s\t%s\t%s\n' % (block_n, 'RF', distance_rf))
+            out_file.write('%s\t%s\t%s\n' % (block_n, 'RR', distance_rr))
+
+
 def main():
 
     import argparse
@@ -396,6 +426,8 @@ def main():
     scaffold_block_list = orient_large_blocks(scaffold_block_list, these_alignments, n=sample_min, m=min_scaffold_size)
     write_summary(scaffold_block_list, scaffolds, 'final_iteration_results.txt')
 
+    log('writing_tabu_file')
+    get_tabu_file(scaffold_block_list, these_alignments)
     # Log the total number of nucleotides that have been oriented.
     total_o = 0
     for block in scaffold_block_list:
