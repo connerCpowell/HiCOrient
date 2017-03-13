@@ -25,6 +25,7 @@ class ScaffoldBlockTest(unittest.TestCase):
 
     def test_init_proper(self):
         self.assertEqual(self.first_scaffold.scaffolds, [0])
+        self.assertEqual(self.first_scaffold.scaffolds, [0])
         self.assertEqual(self.first_scaffold.lengths, [10])
         self.assertEqual(self.first_scaffold.orientations, ['+'])
 
