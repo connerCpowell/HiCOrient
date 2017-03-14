@@ -418,6 +418,10 @@ def main():
     # InterscaffoldAlignment object.
     these_alignments = parse_sam(alignment_files, scaffolds)
 
+    # Get
+    log('writing_tabu_file')
+    get_tabu_file(scaffold_block_list, these_alignments)
+
     # Run the first phase of orientation - the orientation of adjacent pairs.
     scaffold_block_list = orient_adjacent_pairs(scaffold_block_list, scaffolds, these_alignments, n=sample_min)
 
@@ -426,8 +430,6 @@ def main():
     scaffold_block_list = orient_large_blocks(scaffold_block_list, these_alignments, n=sample_min, m=min_scaffold_size)
     write_summary(scaffold_block_list, scaffolds, 'final_iteration_results.txt')
 
-    log('writing_tabu_file')
-    get_tabu_file(scaffold_block_list, these_alignments)
     # Log the total number of nucleotides that have been oriented.
     total_o = 0
     for block in scaffold_block_list:
