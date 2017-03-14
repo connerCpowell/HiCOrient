@@ -19,12 +19,9 @@ HiCOrient can be used when a genetic map was able to cluster and order most scaf
 
 - python2.7
 - numpy
-- cython
-- A particular branch of scipy that includes functionality for permutation F tests.
 
 The following instructions are an example of how to install these dependencies,
-and then HiCOrient. I recommend using a virtual environment, especially considering
-the dependency on an unmerged branch of scipy.
+and then HiCOrient.
 
 ## Installing From Source
 The only way to install HiCOrient is from source. To install, execute the following commands:
@@ -33,11 +30,6 @@ The only way to install HiCOrient is from source. To install, execute the follow
 $ virtualenv VE
 $ . VE/bin/activate
 (VE)$ pip install numpy
-(VE)$ pip install cython
-(VE)$ git clone -b anova https://github.com/malonge/scipy
-(VE)$ cd scipy
-(VE)$ python setup.py install
-(VE)$ cd ..
 (VE)$ git clone https://github.com/malonge/HiCOrient
 (VE)$ cd HiCOrient
 (VE)$ python setup.py install
@@ -60,7 +52,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -n 30                 The minimum HiC event sample size needed to perform a
-                        F-test. Default = 30
+                        F-test. Default = 100
   -m 100000             The minimum scaffold size for consideration in phase
                         2. Default = 100000
   --cheatWith orientations.txt
@@ -83,6 +75,4 @@ optional arguments:
   -h, --help          show this help message and exit
   --prefix PREFIX     Prefix to use for output files.
 ```
-
-# Elaboration
 
