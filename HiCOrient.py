@@ -284,7 +284,7 @@ def orient_large_blocks(in_scaffold_blocks, alignments, n=100, m=100000):
         r_r_alignments = this_block_pair.get_interscaffold_distances(alignments, reverse_a=True, reverse_b=True)
         r_r_alignments = remove_outliers(r_r_alignments)
 
-        # Perform t-test on these two lists of interscaffold alignment distances.
+        # Compare the mean alignment distance for all 4 possible orientations.
         if all([len(f_f_alignments) >= n, len(f_r_alignments) >= n, len(r_f_alignments) >= n, len(r_r_alignments) >= n]):
             # Get the smallest of the means.
             all_means = sorted(
