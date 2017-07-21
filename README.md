@@ -1,6 +1,6 @@
 # HiCOrient
 
-__HiCOrient__ is a tool that uses HiC chromatin interaction data to orient a collection of ordered scaffolds. The process of achieving a 
+__HiCOrient__ is a tool that uses Hi-C chromatin interaction data to orient a collection of ordered scaffolds. The process of achieving a 
 chromosome scale assembly from a draft assembly often involves 3 steps:
 
 1. Clustering of scaffolds into pseudo molecules/chromosomes
@@ -46,15 +46,14 @@ Orient anchored/ordered scaffolds with chromatin interaction data.
 positional arguments:
   <scaffolds.txt>       An ordered list of scaffolds. First column is scaffold
                         header, second is scaffold length.
-  <alignments.sam>      SAM files containing HiC alignments to the specified
+  <alignments.sam>      SAM file(s) containing HiC alignments to the specified
                         scaffolds.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -n 30                 The minimum HiC event sample size needed to perform a
-                        F-test. Default = 100
-  -m 100000             The minimum scaffold size for consideration in phase
-                        2. Default = 100000
+  -n 100                The minimum Hi-C event sample size needed to orient a scaffold block pair. Default = 100
+  -m 100000             The minimum non-adjacent scaffold size for consideration. Default = 100000
+  
   --cheatWith orientations.txt
                         A tab delimited file with known orientations. 1st
                         column is scaffold name, 2nd column is +,-,?

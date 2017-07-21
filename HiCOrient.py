@@ -124,7 +124,7 @@ def orient_adjacent_pairs(in_scaffold_blocks, in_scaffolds, alignments, n=100):
     :param in_scaffold_blocks:
     :param in_scaffolds:
     :param alignments:
-    :param n:
+    :param n: Minimum sample size needed to orient a ScaffoldBlockPair
     :return:
     """
     iteration = 0
@@ -261,11 +261,11 @@ def orient_large_blocks(in_scaffold_blocks, alignments, n=100, m=100000):
     significant orientation found, these orientations will be executed, but blocks will not be extended.
     :param in_scaffold_blocks:
     :param alignments:
-    :param n: Minimum sample size needed to perform a permutation F test
+    :param n: Minimum sample size needed to orient a ScaffoldBlockPair
     :param m: minimum block size to be considered for this utility
     :return:
     """
-    # Get a list of all blocks that either have more than one scaffold, or have a scaffold length >= 1 million
+    # Get a list of all blocks that either have more than one scaffold, or have a scaffold length >= m
     large_blocks = [this_block for this_block in in_scaffold_blocks if sum(this_block.lengths) >= m or len(this_block.scaffolds) > 1]
     for block_a, block_b in slide_pairs(large_blocks):
         # Instantiate a ScaffoldBlockPair object with these two blocks.
@@ -349,11 +349,11 @@ def main():
     parser.add_argument('scaffolds', metavar='<scaffolds.txt>', type=str,
                         help='An ordered list of scaffold headers. First column is scaffold header, second is scaffold length.')
     parser.add_argument('alignments', metavar='<alignments.sam>', nargs='+',
-                        type=str, help='SAM files containing HiC alignments to the specified scaffolds.')
+                        type=str, help='SAM file(s) containing HiC alignments to the specified scaffolds.')
     parser.add_argument('-n', type=int, default=100, metavar='100',
-                        help='The minimum HiC event sample size needed to perform a permutation F-test. Default = 30')
+                        help='The minimum Hi-C event sample size needed to orient a scaffold block pair. Default = 100')
     parser.add_argument('-m', type=int, default=100000, metavar='100000',
-                        help='The minimum scaffold size for consideration in phase 2. Default = 100000')
+                        help='The minimum non-adjacent scaffold size for consideration. Default = 100000')
 
     parser.add_argument('--cheatWith', type=str, default='', metavar='orientations.txt',
                         help='A tab delimited file with known orientations. 1st column is scaffold name, 2nd column is +,-,?')
